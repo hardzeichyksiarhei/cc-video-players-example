@@ -23,13 +23,9 @@ class ShakaPlayer extends React.Component {
   videoElem = React.createRef(null);
   videoEventListeners = [];
 
-  cachePrevStatistics = null;
-  isReadySubmitStatistics = false;
-  intervalInstanceStatistics = null;
+  isReadySubmitStatistics = true;
 
   sendStatistics = async ({ type } = { type: EVENT_TYPES.AUTO }) => {
-    this.isReadySubmitStatistics = true;
-
     const { currentTime } = this.videoElem.current;
     const payload = { currentTime, type };
 
@@ -65,55 +61,45 @@ class ShakaPlayer extends React.Component {
     log("stopTrack");
   };
 
+  seekingHandler = (e) => {
+    logSeekingTitle("\nseekingHandler:");
+
+    const { currentTime, duration } = this.videoElem.current;
+
+    log("start currentTime", currentTime);
+
+    if (this.isReadySubmitStatistics === false) return;
+    if (currentTime >= duration) return;
+
+    log("event", e);
+
+    this.clearIntevalStatistics();
+    this.sendStatistics({ type: EVENT_TYPES.START_REWIND }); // send statistics
+    this.isReadySubmitStatistics = false;
+
+    log("end currentTime", currentTime);
+  };
+
+  seekedHandler = (e) => {
+    logSeekendTitle("\nseekedHandler:");
+
+    const { currentTime } = this.videoElem.current;
+
+    this.isReadySubmitStatistics = true;
+
+    log("start currentTime", currentTime);
+
+    log("event", e);
+
+    log("end currentTime", currentTime);
+  };
+
   setupVideoEventListeners = () => {
     const playingHandler = () => {
       this.startTrackStatistics();
     };
     const pauseHandler = () => {
       this.stopTrackStatistics();
-    };
-    const seekingHandler = (e) => {
-      logSeekingTitle("\nseekingHandler:");
-
-      const { currentTime, duration } = this.videoElem.current;
-
-      log("start currentTime", currentTime);
-
-      if (this.isReadySubmitStatistics === false) {
-        log("isReadySubmitStatistics === false");
-        return;
-      }
-      if (currentTime >= duration) return;
-
-      log("event", e);
-
-      this.sendStatistics({ type: EVENT_TYPES.START_REWIND }); // send statistics
-      this.isReadySubmitStatistics = false;
-
-      log("end currentTime", currentTime);
-    };
-    const seekedHandler = (e) => {
-      logSeekendTitle("\nseekedHandler:");
-
-      this.isReadySubmitStatistics = true;
-
-      // cacheCurrentTime = предыдущее значение отправленное на сервер
-      // Если мы еще не отправляли данные, то обрываем обработчик события
-      const { currentTime: cacheCurrentTime } = JSON.stringify(
-        this.cachePrevStatistics || {}
-      );
-      log("start cacheCurrentTime", cacheCurrentTime);
-      if (cacheCurrentTime === 0) {
-        log("cacheCurrentTime === 0");
-        return;
-      }
-
-      const { currentTime } = this.videoElem.current;
-      log("start currentTime", currentTime);
-
-      log("event", e);
-
-      log("end currentTime", currentTime);
     };
     const errorHandler = (e) => {
       const { detail } = e;
@@ -123,8 +109,8 @@ class ShakaPlayer extends React.Component {
     this.videoEventListeners = [
       { eventName: "playing", eventHandler: playingHandler },
       { eventName: "pause", eventHandler: pauseHandler },
-      { eventName: "seeking", eventHandler: seekingHandler },
-      { eventName: "seeked", eventHandler: seekedHandler },
+      { eventName: "seeking", eventHandler: this.seekingHandler },
+      { eventName: "seeked", eventHandler: this.seekedHandler },
       { eventName: "error", eventHandler: errorHandler },
     ];
   };
@@ -139,6 +125,24 @@ class ShakaPlayer extends React.Component {
     this.videoEventListeners.forEach(({ eventName, eventHandler }) => {
       this.videoElem.current.removeEventListener(eventName, eventHandler);
     });
+  };
+
+  resetSeekEventsStatistics = () => {
+    this.isReadySubmitStatistics = false;
+
+    this.videoElem.current.removeEventListener("seeking", this.seekingHandler);
+    this.videoElem.current.removeEventListener("seeked", this.seekedHandler);
+
+    const seekedHandler = () => {
+      this.videoElem.current.removeEventListener("seeked", seekedHandler);
+
+      this.videoElem.current.addEventListener("seeking", this.seekingHandler);
+      this.videoElem.current.addEventListener("seeked", this.seekedHandler);
+
+      this.isReadySubmitStatistics = true;
+    };
+
+    this.videoElem.current.addEventListener("seeked", seekedHandler);
   };
 
   initPlayer = async () => {
@@ -160,8 +164,12 @@ class ShakaPlayer extends React.Component {
     // This is an asynchronous process.
     try {
       await player.load(src);
-      // videoRef.current.currentTime = 3000;
+
+      // !!! Перед тем как изменить currentTime мы должны сбросить события
+      this.resetSeekEventsStatistics();
+      this.videoElem.current.currentTime = 3000;
       this.videoElem.current.play();
+
       // This runs if the asynchronous load is successful.
       console.log("The video has now been loaded!");
     } catch (e) {
@@ -199,9 +207,7 @@ class ShakaPlayer extends React.Component {
         controls
         autoPlay
         muted
-      >
-        <source src={src} type="application/x-mpegURL"></source>
-      </video>
+      />
     );
   }
 }

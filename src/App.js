@@ -1,4 +1,5 @@
 import ShakaPlayer from "./components/ShakaPlayer";
+import ShakaPlayerWithHOC from "./components/ShakaPlayerWithHOC";
 
 import "./App.css";
 
@@ -14,6 +15,7 @@ const App = () => {
       <div className="native-player-container">
         <h2>Shaka Player</h2>
         <ShakaPlayer src={VIDEO_SRC} drmConfig={drmConfig} />
+        {/* <ShakaPlayerWithHOC src={VIDEO_SRC} drmConfig={drmConfig} /> */}
       </div>
     </div>
   );
