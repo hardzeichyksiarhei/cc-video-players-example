@@ -12,7 +12,7 @@ const App = () => {
   return (
     <div className="app">
       <div className="native-player-container">
-        <h2>Native Player</h2>
+        <h2>Shaka Player</h2>
         <ShakaPlayer src={VIDEO_SRC} drmConfig={drmConfig} />
       </div>
     </div>

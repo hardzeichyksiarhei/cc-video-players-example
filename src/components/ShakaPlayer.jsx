@@ -92,7 +92,7 @@ class ShakaPlayer extends React.Component {
 
       log("end currentTime", currentTime);
     };
-    const seekendHandler = (e) => {
+    const seekedHandler = (e) => {
       logSeekendTitle("\nseekedHandler:");
 
       this.isReadySubmitStatistics = true;
@@ -124,7 +124,7 @@ class ShakaPlayer extends React.Component {
       { eventName: "playing", eventHandler: playingHandler },
       { eventName: "stop", eventHandler: stopHandler },
       { eventName: "seeking", eventHandler: seekingHandler },
-      { eventName: "seekend", eventHandler: seekendHandler },
+      { eventName: "seeked", eventHandler: seekedHandler },
       { eventName: "error", eventHandler: errorHandler },
     ];
   };
