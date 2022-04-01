@@ -68,6 +68,10 @@ class ShakaPlayerWithHOC extends React.Component {
       this.props.stopTrackStatistics();
     };
 
+    const endedHandler = () => {
+      this.internalClearInteval();
+    };
+
     const errorHandler = (e) => {
       const { detail } = e;
       console.error("Error code", detail.code, "object", detail);
@@ -78,6 +82,7 @@ class ShakaPlayerWithHOC extends React.Component {
       { eventName: "pause", eventHandler: pauseHandler },
       { eventName: "seeking", eventHandler: this.seekingHandler },
       { eventName: "seeked", eventHandler: this.seekedHandler },
+      { eventName: "ended", eventHandler: endedHandler },
       { eventName: "error", eventHandler: errorHandler },
     ];
   };
@@ -136,7 +141,7 @@ class ShakaPlayerWithHOC extends React.Component {
       this.resetSeekEventsStatistics();
       this.videoElem.current.currentTime = 3000;
       this.videoElem.current.play();
-      
+
       // This runs if the asynchronous load is successful.
       console.log("The video has now been loaded!");
     } catch (e) {
