@@ -69,7 +69,7 @@ class ShakaPlayer extends React.Component {
     const playingHandler = () => {
       this.startTrackStatistics();
     };
-    const stopHandler = () => {
+    const pauseHandler = () => {
       this.stopTrackStatistics();
     };
     const seekingHandler = (e) => {
@@ -122,7 +122,7 @@ class ShakaPlayer extends React.Component {
 
     this.videoEventListeners = [
       { eventName: "playing", eventHandler: playingHandler },
-      { eventName: "stop", eventHandler: stopHandler },
+      { eventName: "pause", eventHandler: pauseHandler },
       { eventName: "seeking", eventHandler: seekingHandler },
       { eventName: "seeked", eventHandler: seekedHandler },
       { eventName: "error", eventHandler: errorHandler },
